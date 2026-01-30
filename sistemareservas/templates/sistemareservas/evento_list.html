@@ -1,0 +1,33 @@
+<h2>Eventos</h2>
+
+{% if user.is_authenticated %}
+    <a href="{% url 'evento_create' %}">Criar Evento</a>
+{% endif %}
+
+<ul>
+    {% for evento in eventos %}
+        <li>
+            {{ evento.titulo }} — {{ evento.data }}
+
+            {% if user == evento.organizador %}
+                <a href="{% url 'evento_update' evento.id %}">Editar</a>
+                <a href="{% url 'evento_delete' evento.id %}">Excluir</a>
+            {% endif %}
+        </li>
+    {% empty %}
+        <li>Nenhum evento cadastrado.</li>
+    {% endfor %}
+</ul>
+
+<!-- Paginação -->
+<div>
+    {% if eventos.has_previous %}
+        <a href="?page={{ eventos.previous_page_number }}">Anterior</a>
+    {% endif %}
+
+    Página {{ eventos.number }} de {{ eventos.paginator.num_pages }}
+
+    {% if eventos.has_next %}
+        <a href="?page={{ eventos.next_page_number }}">Próxima</a>
+    {% endif %}
+</div>
