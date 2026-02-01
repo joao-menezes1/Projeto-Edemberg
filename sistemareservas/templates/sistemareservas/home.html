@@ -1,0 +1,112 @@
+{% extends 'sistemareservas/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row align-items-center py-5 mb-5 g-5">
+        <div class="col-lg-6 text-start">
+            <span class="badge bg-info mb-3 px-3 py-2 rounded-pill fw-bold">Novo: Eventos Comunitários 2026</span>
+            <h1 class="display-3 fw-bold mb-4 lh-1 text-dark">
+                Onde grandes <span class="text-primary">experiências</span> começam.
+            </h1>
+            <p class="lead text-muted mb-5">
+                Descubra, organize e participe de eventos incríveis. 
+                Conecte-se com sua comunidade e crie memórias que duram a vida toda.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'evento_list' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-calendar3 me-2"></i>Ver Eventos
+                    </a>
+                    <a href="{% url 'evento_create' %}" class="btn btn-outline-dark btn-lg">
+                        <i class="bi bi-plus-lg me-2"></i>Criar Evento
+                    </a>
+                {% else %}
+                    <a href="{% url 'evento_list' %}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-calendar-event me-2"></i>Explorar Eventos
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="position-relative">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="card-body p-5 d-flex align-items-center justify-content-center bg-light" style="height: 400px;">
+                        <i class="bi bi-rocket-takeoff text-primary" style="font-size: 5rem;"></i>
+                    </div>
+                </div>
+                <div class="position-absolute bottom-0 end-0 translate-middle badge bg-success p-3 rounded-circle mb-3 me-3">
+                    <i class="bi bi-check-circle-fill"></i> +1k Inscrições
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-5 g-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-search text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Descubra</h5>
+                    <p class="card-text text-muted small">Encontre workshops, shows e encontros filtrados pelo que você ama.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-pencil-square text-success" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Organize</h5>
+                    <p class="card-text text-muted small">Ferramentas completas para gerenciar inscritos e horários sem estresse.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="mb-3">
+                        <i class="bi bi-people text-warning" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h5 class="card-title fw-bold">Conecte-se</h5>
+                    <p class="card-text text-muted small">Chat integrado e rede social para interagir com outros participantes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-5 bg-primary text-white p-5 rounded-4 shadow-lg">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h2 class="fw-bold mb-3">A vida é feita de momentos.</h2>
+                <p class="lead mb-0">
+                    {% if user.is_authenticated %}
+                        Pronto para o próximo nível, <strong>{{ user.username }}</strong>?
+                    {% else %}
+                        Junte-se a mais de 10.000 usuários e comece agora.
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end mt-4 mt-lg-0">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'evento_list' %}" class="btn btn-light btn-lg px-5 fw-bold">Explorar</a>
+                {% else %}
+                    <a href="{% url 'signup' %}" class="btn btn-light btn-lg px-5 fw-bold">Começar Grátis</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .rounded-4 {
+        border-radius: 1rem;
+    }
+    
+    .shadow-lg {
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175) !important;
+    }
+</style>
+{% endblock %}

@@ -2,13 +2,17 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse
 
-from .models import Evento
-from .forms import EventoForm, SignUpForm, LoginForm
+
+from .models import Evento, Inscricao
+from .forms import EventoForm, SignUpForm, LoginForm, CategoriaEventoForm
 
 # Create your views here.
+
+def home(request):
+    return render(request, 'sistemareservas/home.html')
 
 def evento_list(request):
     eventos = Evento.objects.all().order_by('data')
@@ -17,18 +21,29 @@ def evento_list(request):
     page = request.GET.get('page')
     eventos_page = paginator.get_page(page)
 
+    # Marcar para cada evento se o usuário atual está inscrito (usado pelo template)
+    for evento in eventos_page:
+        evento.is_inscrito = False
+        if request.user.is_authenticated:
+            evento.is_inscrito = evento.usuario_inscrito(request.user)
     return render(request, 'sistemareservas/evento_list.html', {
         'eventos': eventos_page
     })
 
-@login_required
+#@login_required
+@permission_required('sistemareservas.add_evento', login_url='evento_list')
 def evento_create(request):
+    if not request.user.has_perm('sistemareservas.add_evento'):
+        messages.error(request, 'Você não tem permissão para criar eventos.')
+        return redirect('evento_list')
+    
     if request.method == 'POST':
         form = EventoForm(request.POST)
         if form.is_valid():
             evento = form.save(commit=False)
             evento.organizador = request.user
             evento.save()
+            messages.success(request, 'Evento criado com sucesso!')
             return redirect('evento_list')
     else:
         form = EventoForm()
@@ -112,3 +127,57 @@ def logout_view(request):
     messages.success(request, 'Você saiu do sistema.')
     return redirect('login')
 
+
+@login_required
+def categoria_create(request):
+    if request.method == 'POST':
+        form = CategoriaEventoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria criada com sucesso.')
+            return redirect('evento_list')
+    else:
+        form = CategoriaEventoForm()
+
+    return render(request, 'sistemareservas/categoria_form.html', {'form': form})
+
+
+@login_required
+def inscricao_criar(request, pk):
+    evento = get_object_or_404(Evento, pk=pk)
+    
+    # Verificar se já está inscrito
+    inscricao_existente = Inscricao.objects.filter(
+        participante=request.user,
+        evento=evento
+    ).exists()
+    
+    if inscricao_existente:
+        messages.warning(request, 'Você já está inscrito neste evento.')
+        return redirect('evento_list')
+    
+    # Criar inscrição
+    inscricao = Inscricao.objects.create(
+        participante=request.user,
+        evento=evento
+    )
+    
+    messages.success(request, f'Você se inscreveu em "{evento.titulo}" com sucesso!')
+    return redirect('evento_list')
+
+
+@login_required
+def inscricao_cancelar(request, pk):
+    evento = get_object_or_404(Evento, pk=pk)
+    
+    try:
+        inscricao = Inscricao.objects.get(
+            participante=request.user,
+            evento=evento
+        )
+        inscricao.delete()
+        messages.success(request, f'Você cancelou sua inscrição em "{evento.titulo}".')
+    except Inscricao.DoesNotExist:
+        messages.error(request, 'Você não está inscrito neste evento.')
+    
+    return redirect('evento_list')

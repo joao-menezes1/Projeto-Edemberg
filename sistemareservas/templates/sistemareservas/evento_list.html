@@ -1,33 +1,138 @@
-<h2>Eventos</h2>
+{% extends 'sistemareservas/base.html' %}
 
-{% if user.is_authenticated %}
-    <a href="{% url 'evento_create' %}">Criar Evento</a>
-{% endif %}
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">Explorar Eventos</h2>
+            <p class="text-muted small">Encontre as melhores experiências da comunidade.</p>
+        </div>
+        {% if perms.sistemareservas.add_evento %}
+            <a href="{% url 'evento_create' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-plus-lg me-2"></i>Criar Novo Evento
+            </a>
+        {% endif %}
+    </div>
 
-<ul>
-    {% for evento in eventos %}
-        <li>
-            {{ evento.titulo }} — {{ evento.data }}
+    <div class="row g-4">
+        {% for evento in eventos %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm hover-lift overflow-hidden">
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 180px;">
+                        <i class="bi bi-calendar-event text-primary opacity-50" style="font-size: 3rem;"></i>
+                    </div>
+                    
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title fw-bold mb-0">{{ evento.titulo }}</h5>
+                            <span class="badge bg-soft-primary text-primary">{{ evento.data|date:"d M" }}</span>
+                        </div>
+                        
+                        <p class="card-text text-muted small mb-4">
+                            <i class="bi bi-clock me-1"></i> {{ evento.data|time:"H:i" }} | 
+                            <i class="bi bi-person-badge me-1"></i> {{ evento.organizador.username }}
+                        </p>
 
-            {% if user == evento.organizador %}
-                <a href="{% url 'evento_update' evento.id %}">Editar</a>
-                <a href="{% url 'evento_delete' evento.id %}">Excluir</a>
+                        <p class="text-muted small mb-3">
+                            <span class="badge bg-info">{{ evento.categoria.nome }}</span>
+                        </p>
+
+                        {% if user == evento.organizador %}
+                            <div class="d-flex gap-2 border-top pt-3">
+                                <a href="{% url 'evento_update' evento.id %}" class="btn btn-outline-secondary btn-sm flex-grow-1 border-0">
+                                    <i class="bi bi-pencil me-1"></i> Editar
+                                </a>
+                                <a href="{% url 'evento_delete' evento.id %}" class="btn btn-outline-danger btn-sm border-0">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="d-flex gap-2 border-top pt-3">
+                                {% if user.is_authenticated %}
+                                        {% if evento.is_inscrito %}
+                                        <a href="{% url 'inscricao_cancelar' evento.id %}" class="btn btn-warning btn-sm w-100 fw-bold py-2">
+                                            <i class="bi bi-check-circle me-1"></i> Inscrito
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'inscricao_criar' evento.id %}" class="btn btn-success btn-sm w-100 fw-bold py-2">
+                                            <i class="bi bi-person-plus me-1"></i> Inscrever-se
+                                        </a>
+                                    {% endif %}
+                                {% else %}
+                                    <a href="{% url 'login' %}?next={% url 'evento_list' %}" class="btn btn-info btn-sm w-100 fw-bold py-2">
+                                        <i class="bi bi-box-arrow-in-right me-1"></i> Faça login para inscrever
+                                    </a>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <div class="bg-light rounded-4 p-5">
+                    <i class="bi bi-emoji-frown fs-1 text-muted"></i>
+                    <p class="mt-3 text-muted">Nenhum evento cadastrado no momento.</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if eventos.has_other_pages %}
+    <nav aria-label="Navegação de páginas" class="mt-5">
+        <ul class="pagination justify-content-center">
+            {% if eventos.has_previous %}
+                <li class="page-item">
+                    <a class="page-link border-0 shadow-sm rounded-circle mx-1" href="?page={{ eventos.previous_page_number }}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
             {% endif %}
-        </li>
-    {% empty %}
-        <li>Nenhum evento cadastrado.</li>
-    {% endfor %}
-</ul>
 
-<!-- Paginação -->
-<div>
-    {% if eventos.has_previous %}
-        <a href="?page={{ eventos.previous_page_number }}">Anterior</a>
-    {% endif %}
+            <li class="page-item disabled">
+                <span class="page-link border-0 bg-transparent text-dark fw-bold">
+                    {{ eventos.number }} / {{ eventos.paginator.num_pages }}
+                </span>
+            </li>
 
-    Página {{ eventos.number }} de {{ eventos.paginator.num_pages }}
-
-    {% if eventos.has_next %}
-        <a href="?page={{ eventos.next_page_number }}">Próxima</a>
+            {% if eventos.has_next %}
+                <li class="page-item">
+                    <a class="page-link border-0 shadow-sm rounded-circle mx-1" href="?page={{ eventos.next_page_number }}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
     {% endif %}
 </div>
+
+<style>
+    /* Estilos para um visual moderno */
+    .bg-soft-primary {
+        background-color: #e7f0ff;
+    }
+
+    .hover-lift {
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 1rem 3rem rgba(0,0,0,0.1) !important;
+    }
+
+    .page-link {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #0d6efd;
+    }
+
+    .card {
+        border-radius: 1rem;
+    }
+</style>
+{% endblock %}

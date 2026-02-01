@@ -28,6 +28,10 @@ class Evento(models.Model):
     def __str__(self):
         return self.titulo
 
+    def usuario_inscrito(self, user):
+        """Verifica se um usuário está inscrito neste evento"""
+        return self.inscricao_set.filter(participante=user).exists()
+
 
 class Inscricao(models.Model):
     participante = models.ForeignKey(
