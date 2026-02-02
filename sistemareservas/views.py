@@ -181,3 +181,19 @@ def inscricao_cancelar(request, pk):
         messages.error(request, 'Você não está inscrito neste evento.')
     
     return redirect('evento_list')
+
+
+@login_required
+def evento_inscritos(request, pk):
+    """Mostra a lista de inscritos para o evento — apenas o organizador pode ver."""
+    evento = get_object_or_404(Evento, pk=pk)
+
+    if evento.organizador != request.user:
+        return HttpResponse('Você não pode ver os inscritos deste evento.')
+
+    inscricoes = Inscricao.objects.filter(evento=evento).select_related('participante').order_by('-data_inscricao')
+
+    return render(request, 'sistemareservas/inscritos_list.html', {
+        'evento': evento,
+        'inscricoes': inscricoes,
+    })
