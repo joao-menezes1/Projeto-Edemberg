@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
@@ -19,6 +19,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('minhas_inscricoes/',views.minhas_inscricoes,name='minhas_inscricoes'),
+    path('api/', include('sistemareservas.api_urls')),  # Inclui as URLs da API
 
 
 ]
