@@ -11,8 +11,14 @@ urlpatterns = [
     path('eventos/<int:pk>/inscritos/', views.evento_inscritos, name='evento_inscritos'),
     path('eventos/<int:pk>/inscrever/', views.inscricao_criar, name='inscricao_criar'),
     path('eventos/<int:pk>/desinscrever/', views.inscricao_cancelar, name='inscricao_cancelar'),
+    path('categorias/', views.categoria_list, name='categoria_list'),
+    path('categorias/novo/', views.categoria_create, name='categoria_create'),
+    path('categorias/<int:pk>/editar/', views.categoria_update, name='categoria_update'),
+    path('categorias/<int:pk>/excluir/', views.categoria_delete, name='categoria_delete'),
     path('signup/', views.signup_view, name='signup'),
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
+    path('minhas_inscricoes/',views.minhas_inscricoes,name='minhas_inscricoes'),
+
 
 ]

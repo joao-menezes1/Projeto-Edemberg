@@ -118,12 +118,30 @@
             <a href="{% url 'evento_list' %}" class="btn btn-outline-primary">
                 <i class="bi bi-calendar-event me-1"></i>Eventos
             </a>
-            {% if user.is_authenticated %}
+            {% if perms.sistemareservas.add_evento %}
                 <a href="{% url 'evento_create' %}" class="btn btn-outline-primary">
                     <i class="bi bi-plus-lg me-1"></i>Criar Evento
                 </a>
             {% endif %}
+            {% if perms.sistemareservas.view_categoriaevento %}
+                <a href="{% url 'categoria_list' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-tags me-1"></i>Categorias
+                </a>
+            {% endif %}
+            {% if perms.sistemareservas.add_categoriaevento %}
+                <a href="{% url 'categoria_create' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-tag-fill me-1"></i>Criar Categoria
+                </a>
+            {% endif %}
+            {% if user.is_authenticated %}
+                <a href="{% url 'minhas_inscricoes' %}" class="btn btn-outline-primary">
+                    <i class="bi bi-bookmark-check me-1"></i>
+                    Minhas Inscrições
+                </a>
+            {% endif %}
+
         </div>
+        
     </div>
 </div>
 

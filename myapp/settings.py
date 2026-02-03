@@ -118,5 +118,5 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 LOGIN_URL = '/sistemareservas/login/'
-LOGIN_REDIRECT_URL = '/sistemareservas/'
+# LOGIN_REDIRECT_URL = '/sistemareservas/'
 LOGOUT_REDIRECT_URL = '/sistemareservas/login/'

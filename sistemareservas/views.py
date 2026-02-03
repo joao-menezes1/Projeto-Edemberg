@@ -6,14 +6,16 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse
 
 
-from .models import Evento, Inscricao
+from .models import Evento, Inscricao, CategoriaEvento
 from .forms import EventoForm, SignUpForm, LoginForm, CategoriaEventoForm
 
 # Create your views here.
+URL_NEGADO = 'evento_list'
 
 def home(request):
     return render(request, 'sistemareservas/home.html')
 
+@login_required
 def evento_list(request):
     eventos = Evento.objects.all().order_by('data')
     paginator = Paginator(eventos, 10)
@@ -24,18 +26,14 @@ def evento_list(request):
     # Marcar para cada evento se o usuário atual está inscrito (usado pelo template)
     for evento in eventos_page:
         evento.is_inscrito = False
-        if request.user.is_authenticated:
-            evento.is_inscrito = evento.usuario_inscrito(request.user)
+        evento.is_inscrito = evento.usuario_inscrito(request.user)
     return render(request, 'sistemareservas/evento_list.html', {
         'eventos': eventos_page
     })
 
 #@login_required
-@permission_required('sistemareservas.add_evento', login_url='evento_list')
+@permission_required('sistemareservas.add_evento', login_url=URL_NEGADO)
 def evento_create(request):
-    if not request.user.has_perm('sistemareservas.add_evento'):
-        messages.error(request, 'Você não tem permissão para criar eventos.')
-        return redirect('evento_list')
     
     if request.method == 'POST':
         form = EventoForm(request.POST)
@@ -50,7 +48,8 @@ def evento_create(request):
 
     return render(request, 'sistemareservas/evento_form.html', {'form': form})
 
-@login_required
+# @login_required
+@permission_required('sistemareservas.change_evento', login_url=URL_NEGADO)
 def evento_update(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
 
@@ -67,7 +66,8 @@ def evento_update(request, pk):
 
     return render(request, 'sistemareservas/evento_form.html', {'form': form})
 
-@login_required
+# @login_required
+@permission_required('sistemareservas.delete_evento', login_url=URL_NEGADO)
 def evento_delete(request, pk):
     evento = get_object_or_404(Evento, pk=pk)
 
@@ -128,7 +128,8 @@ def logout_view(request):
     return redirect('login')
 
 
-@login_required
+#@login_required
+@permission_required('sistemareservas.add_categoriaevento', login_url=URL_NEGADO)
 def categoria_create(request):
     if request.method == 'POST':
         form = CategoriaEventoForm(request.POST)
@@ -140,6 +141,39 @@ def categoria_create(request):
         form = CategoriaEventoForm()
 
     return render(request, 'sistemareservas/categoria_form.html', {'form': form})
+
+#@login_required
+@permission_required('sistemareservas.view_categoriaevento', login_url=URL_NEGADO)
+def categoria_list(request):
+    categorias = CategoriaEvento.objects.all().order_by('nome')
+    return render(request, 'sistemareservas/categoria_list.html', {
+        'categorias': categorias
+    })
+
+#@login_required
+@permission_required('sistemareservas.change_categoriaevento', login_url=URL_NEGADO)
+def categoria_update(request, pk):
+    categoria = get_object_or_404(CategoriaEvento, pk=pk)
+
+    if request.method == 'POST':
+        form = CategoriaEventoForm(request.POST, instance=categoria)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Categoria atualizada com sucesso.')
+            return redirect('categoria_list')
+    else:
+        form = CategoriaEventoForm(instance=categoria)
+
+    return render(request, 'sistemareservas/categoria_form.html', {'form': form})
+
+#@login_required
+@permission_required('sistemareservas.delete_categoriaevento', login_url=URL_NEGADO)
+def categoria_delete(request, pk):
+    categoria = get_object_or_404(CategoriaEvento, pk=pk)
+    categoria.delete()
+    messages.success(request, 'Categoria excluída com sucesso.')
+    return redirect('categoria_list')
+
 
 
 @login_required
@@ -157,7 +191,7 @@ def inscricao_criar(request, pk):
         return redirect('evento_list')
     
     # Criar inscrição
-    inscricao = Inscricao.objects.create(
+    Inscricao.objects.create(
         participante=request.user,
         evento=evento
     )
@@ -196,4 +230,21 @@ def evento_inscritos(request, pk):
     return render(request, 'sistemareservas/inscritos_list.html', {
         'evento': evento,
         'inscricoes': inscricoes,
+    })
+
+@login_required
+def minhas_inscricoes(request):
+    inscricoes = (
+        Inscricao.objects
+        .filter(participante=request.user)
+        .select_related('evento', 'evento__categoria')
+        .order_by('evento__data')
+    )
+
+    paginator = Paginator(inscricoes, 6)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'sistemareservas/minhas_inscricoes.html', {
+        'page_obj': page_obj
     })
