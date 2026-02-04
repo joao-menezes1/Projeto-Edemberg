@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 
 
 class CategoriaEvento(models.Model):
-    nome = models.CharField(max_length=100)
+    nome = models.CharField(max_length=100, unique=True)
     #descricao = models.TextField()
 
     def __str__(self):

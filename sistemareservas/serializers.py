@@ -13,6 +13,13 @@ class CategoriaSerializer(serializers.ModelSerializer):
         model = CategoriaEvento
         fields = '__all__'
 
+    def validate_nome(self, value):
+        if CategoriaEvento.objects.filter(nome__iexact=value).exists():
+            raise serializers.ValidationError(
+                'Já existe uma categoria com esse nome.'
+            )
+        return value
+
 class EventoSerializer(serializers.ModelSerializer):
 
     organizador = UserSerializer(read_only=True)
@@ -31,6 +38,17 @@ class EventoSerializer(serializers.ModelSerializer):
             'organizador'
         ]
 
+    def validate(self, data):
+        if not data.get('titulo'):
+            raise serializers.ValidationError(
+                'Título é obrigatório.'
+            )
+        if not data.get('local'):
+            raise serializers.ValidationError(
+                'Local é obrigatório.'
+            )
+        return data
+    
     def validate_data(self, value):
         if value < timezone.now():
             raise serializers.ValidationError(
@@ -53,3 +71,17 @@ class InscricaoSerializer(serializers.ModelSerializer):
             'data_inscricao'
         ]
         read_only_fields = ['data_inscricao']
+
+    def validate(self, data):
+        user = self.context['request'].user
+        evento = data.get('evento')
+
+        if Inscricao.objects.filter(
+            participante=user,
+            evento=evento
+        ).exists():
+            raise serializers.ValidationError(
+                "Você já está inscrito neste evento."
+            )
+        return data
+

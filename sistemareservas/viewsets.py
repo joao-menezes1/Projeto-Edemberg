@@ -1,10 +1,34 @@
-from rest_framework import viewsets, permissions
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
+from django.contrib.auth import authenticate, login
 
 from .models import Evento, CategoriaEvento, Inscricao
 from .serializers import EventoSerializer, CategoriaSerializer, InscricaoSerializer
 
 from rest_framework import permissions
+
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def api_login_view(request):
+    """Endpoint de login exclusivo para a API"""
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    if not username or not password:
+        return Response({'error': 'Usuário e senha são obrigatórios'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    user = authenticate(request, username=username, password=password)
+    
+    if user is not None:
+        login(request, user)
+        return Response({
+            'id': user.id,
+            'username': user.username,
+            'is_organizador': user.groups.filter(name='organizadores').exists()
+        }, status=status.HTTP_200_OK)
+    
+    return Response({'error': 'Credenciais inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
 
 
 class IsOrganizador(permissions.BasePermission):
