@@ -29,7 +29,7 @@ class Evento(models.Model):
         return self.titulo
 
     def usuario_inscrito(self, user):
-        """Verifica se um usuário está inscrito neste evento"""
+        """Verifica se um usuário está inscrito neste evento."""
         return self.inscricao_set.filter(participante=user).exists()
 
 
